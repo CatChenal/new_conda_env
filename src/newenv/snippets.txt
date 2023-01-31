@@ -1,0 +1,53 @@
+Path.home()
+Path.cwd()
+
+```
+import subprocess
+
+with Popen(["where", "python"], stdout=PIPE) as proc:
+    user_dir = Path(proc.stdout.read()).parent
+"""
+Windows 10 with Anaconda3 and username “jsmith”– C:\Users\jsmith\Anaconda3\python.exe.
+
+In a conda environment called “my-env” might be in a location such as C:\Users\jsmith\Anaconda3\envs\my-env\python.exe
+"""
+
+
+process = subprocess.Popen(
+    "conda run -n ${CONDA_ENV_NAME} python script.py".split(), , stdout=subprocess.PIPE
+)
+output, error = process.communicate()
+
+```    
+```
+# pip install pyyaml
+
+from yaml import Loader, Dumper
+
+# ...
+
+data = load(stream, Loader=Loader)
+```
+
+
+
+```
+# https://github.com/cookiecutter/cookiecutter/blob/main/cookiecutter/utils.py
+
+import contextlib
+import os
+from pathlib import Path
+
+@contextlib.contextmanager
+def work_in(dirname=None):
+    """Context manager version of os.chdir.
+    When exited, returns to the working directory prior to entering.
+    """
+    curdir = os.getcwd()
+    try:
+        if dirname is not None:
+            os.chdir(dirname)
+        yield
+    finally:
+        os.chdir(curdir)
+```
