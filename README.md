@@ -33,9 +33,9 @@ The package automates the manual workaround.
 3. Optional: A name for the new yaml file (to overwrite default name: `env_{kernal}{new_ver}_from_{env_ini}.yml`)
 
 # TODO
- [ ] Create all needed processing functions & tests
- [ ] Create cli with Click & test
- [ ] Upload to conda-forge
+ [ ] Create all needed processing functions & tests  
+ [ ] Create cli with Click & test  
+ [ ] Upload to conda-forge  
  
 ---
 
