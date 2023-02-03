@@ -25,6 +25,8 @@ You've created a conda environment, which you would like to re-create with a dif
 # Solution implemented in `new_conda_env`:
 The package automates the manual workaround.
 ![wanted](./wanted_venn.drawio.svg)
+
+![C1 view](./c1_view.drawio.svg)
 # User-supplied data:
 1. The name of the conda env to "quick-clone", `env_ini`
 2. The name of the kernel, i.e. 'python'
