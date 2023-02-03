@@ -36,7 +36,7 @@ The package automates the manual workaround.
 
 # TODO
  [ ] Create all needed processing functions & tests  
- [ ] Create cli with Click & test  
+ [ ] Create cli & test  
  [ ] Upload to conda-forge  
  
 ---
