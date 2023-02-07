@@ -32,15 +32,16 @@ The package automates the manual workaround.
 2. The name of the kernel, i.e. 'python'
 2. The name for the new environment
 2. The new version of the kernel to use, `new_ver`
-3. Optional: A name for the new yaml file (to overwrite default name: `env_{kernal}{new_ver}_from_{env_ini}.yml`)
+3. Optional: A name for the new yaml file (to overwrite default name: `env_{kernel}{new_ver}_from_{env_ini}.yml`)
 
 # TODO
  [ ] Create all needed processing functions & tests  
  [ ] Create cli & test  
- [ ] Upload to conda-forge  
+ [ ] Upload to conda-forge
+ [ ] Do same for julia, R kernels (if requested with enhancement issues)  
  
 ---
 
 ### What's yaml (yml)?
 >"YAML is a data serialization format designed for human readability and interaction with scripting languages"
-#### More about [yaml](https://github.com/yaml/yaml-spec/blob/main/spec/1.2.2/spec.md) and [pyyaml](https://pypi.org/project/PyYAML/)
+#### More about [yaml](https://github.com/yaml/yaml-spec/blob/main/spec/1.2.2/spec.md) and [ruamel.yaml (used by conda)](https://pypi.org/project/ruamel.yaml/)
