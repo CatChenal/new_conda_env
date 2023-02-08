@@ -2,7 +2,7 @@ import os
 import sys
 from pathlib import Path
 import re
-import functools
+from functools import partial
 from logging import getLogger
 import subprocess
 from subprocess import Popen, PIPE
@@ -15,12 +15,19 @@ except ImportError:
     except ImportError:
         raise ImportError("No yaml library found. To proceed, conda install ruamel.yaml")
         
-from conda.base.context import context, sys_rc_path, user_rc_path
-from conda.base import constants as base_csts
-from conda.common.serialize import yaml_round_trip_dump, yaml_round_trip_load
+from conda.base.context import context, user_rc_path  #, sys_rc_path
+from conda.common.serialize import yaml_round_trip_dump, _yaml_round_trip, yaml_round_trip_load
 # ..........................................................................
 
 log = getLogger(__name__)
+
+winOS = sys.platform == "win32"
+
+def path2str0(p: Path, win_os: bool=True):
+    s = str(p) if win_os else p.as_posix()
+    return s
+
+path2str = partial(path2str0, win_os=winOS)
 
 
 class CondaEnvir:
@@ -39,7 +46,7 @@ class CondaEnvir:
     - new_ver (str): New python version
     - dotless_ver (bool): If True, period(s) in new_ver are removed when forming
       the default `new_env_name`
-    - env_to_clone (str): The exisitng conda environment to 'quick-clone'
+    - env_to_clone (str): The existing conda environment to 'quick-clone'
     - new_env_name (str, "default"): If called with default value, the new env name
       will have this pattern: "env" + self.new_ver, e.g. env3.11
     - kernel (str, "python"): current implementation is for python only
@@ -52,14 +59,13 @@ class CondaEnvir:
                  kernel: str="python",
                  debug: bool=True):
         
-        if kernel.lower() != "python":
+        self.kernel = kernel.lower()
+        if self.kernel != "python":
             log.error("Post an enhancement issue!")
             raise NotImplementedError
-            
-        self.kernel = kernel
-        
-        self.same_vers = (new_ver == old_ver)
-        if self.same_vers:
+          
+        if (new_ver == old_ver):
+            # no problem: user wants a "lean" yml file
             log.warning("The old & new versions are identical.")
 
         self.conda_root = Path(os.getenv("CONDA_ROOT"))
@@ -79,6 +85,7 @@ class CondaEnvir:
         self.new_ver = (new_ver.replace('.','') if dotless_ver else new_ver)
         self.new_env_name = self.get_new_env_name(new_env_name)
         self.new_prefix = self.basic_info["env_dir"].joinpath(self.new_env_name)
+        self.new_yml = self.get_new_yml_pathname()
         
         self.user_rc = self.get_user_rc()
         self.has_user_rc = self.user_rc is not None 
@@ -95,27 +102,68 @@ class CondaEnvir:
         variables in a dict.
         All paths -> Path objects.
         """
-        d = {"conda_prefix":Path(context.conda_prefix),
-             "active_prefix":Path(context.active_prefix),
-             "user_condarc":Path(user_rc_path),
+        # check first: active env == base?
+        prefix_conda = Path(context.conda_prefix)
+        prefix_active = Path(context.active_prefix)
+        if prefix_active != prefix_conda:
+            msg = "\n`new_cond_env` should be run in (base), but this "
+            msg = msg + f"environment is activated: {prefix_active.name}\n"
+            msg = msg + "Deactivate it & re-run `new_cond_env`."
+            log.error(msg)
+            raise ValueError
+        
+        #check curr path:
+        #should be path from just opened conda prompt ==user's?
+        # to test: problem with admin-installed conda on linux?
+        # or: self.conda_root.parent != Path().home() ???
+        if prefix_conda.parent != Path().home():
+            msg = """
+            `new_cond_env` should be run in the user's home folder, i.e. 
+            the path from a just opened conda prompt (with an activated 
+            base environment)."""
+            log.error(msg)
+            raise ValueError
+        
+        d = {"conda_prefix": prefix_conda,
+             "active_prefix": prefix_active,
+             "user_condarc": Path(user_rc_path),
              # only consider user's .condarc; 
              # -> relies on ordering + possibly OS: not robust -> test
-             "env_dir":Path(context.envs_dirs[0]),
+             "env_dir": Path(context.envs_dirs[0]),
              #what about other kernels?
-             "default_python":context.default_python,
-             "winOS":base_csts.on_win  # not used
+             "default_python": context.default_python # not used
             }
         
         return d
 
 
+    def get_new_yml_pathname(self) -> Path:
+        from_env = self.env_to_clone.replace('.','')
+        to_env = self.new_ver.replace('.','')
+        n = f"lean_env_from_{from_env}_to_{to_env}.yml" 
+        
+        return Path().home().joinpath(n)
+
+
     def get_user_rc(self):
-        p = self.basic_info["user_condarc"]
-        if p.exists():
-            return p
-        log.info(f"No user-defined .condarc found in: {p}.")
+        rc = self.basic_info["user_condarc"]
+        if rc.exists():
+            return rc
+        log.info(f"No user-defined .condarc found in: {rc}.")
         
         return None
+
+    
+    def get_rc_python_deps(self) -> bool:
+        out = True #:: rc key "add_pip_as_python_dependency" def.
+        if self.has_user_rc:
+            rc = load_env_yml(self.user_rc)
+            # if key is True, pip, wheel & setuptools 
+            # won't be listed in export --from-history
+            out = rc.get("add_pip_as_python_dependency")
+            if out is not None and not out:
+                return out
+        return out
 
 
     def get_new_env_name(self, str_name):
@@ -152,10 +200,8 @@ class CondaEnvir:
 
     
     def __repr__(self):
-        repr_str = "CondaEnvir({} (str), {} (str), {} (bool), "
-        repr_str += "{} (str), {} (new_env_name='default', str))"
-        return repr_str.format(self.old_ver, self.new_ver, self.dotless_ver,
-                               self.env_to_clone, self.new_env_name)
+        import inspect
+        return self.__class__.__name__ + str(inspect.signature(self.__class__))
                         
 
     def __str__(self):
@@ -164,7 +210,15 @@ class CondaEnvir:
     
 
 def load_env_yml(yml_filepath: Path):
+    log.info(f"Loading yml file: {path2str(yml_filepath)}\n")
     return yaml_round_trip_load(yml_filepath)   
+
+
+def save_to_yml(yml_filepath, data):
+    yam = yaml.YAML()
+    with open(yml_filepath, 'wb') as f:
+        yam.dump(data, f)
+    log.info(f"File saved to yml: {path2str(yml_filepath)}\n")
 
 
 def get_pip_deps(data, strip_ver=True):
@@ -182,6 +236,6 @@ def get_pip_deps(data, strip_ver=True):
     # else remove versions
     # {1,}:: at least 1 period in version, e.g. networkx==3.0
     regex = r"(?<=)==\d+(?:\.\d+){1,}"
-    cleaned_pips = dict(pip=[re.sub(regex,"",p) for p in pip_deps["pip"]])
+    cleaned = dict(pip=[re.sub(regex,"",p) for p in pip_deps["pip"]])
         
-    return cleaned_pips
+    return cleaned
