@@ -28,15 +28,18 @@ The package automates the manual workaround.
 
 ![C1 view](./images/c1_view.drawio.svg)
 # User-supplied data:
-1. The name of the conda env to "quick-clone", `env_ini`
+1. The name of the conda env to "quick-clone"
 2. The name of the kernel, i.e. 'python'
 2. The name for the new environment
-2. The new version of the kernel to use, `new_ver`
+2. The new version of the kernel to use
 3. Optional: A name for the new yaml file (to overwrite default name: `env_{kernel}{new_ver}_from_{env_ini}.yml`)
 
 # TODO
  [ ] Create all needed processing functions & tests  
- [ ] Create cli & test  
+ [ ] cli: Create
+ [ ] cli: Add flag on cli to cleanup intermediate files
+ [ ] cli: Add flag (T) to do dry-run install of new env w/ "lean yml" file;  
+    - Recommend to do it if F
  [ ] Upload to conda-forge
  [ ] Do same for julia, R kernels (if requested with enhancement issues)  
  
