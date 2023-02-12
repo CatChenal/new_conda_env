@@ -30,9 +30,12 @@ The package automates the manual workaround.
 # User-supplied data:
 1. The name of the conda env to "quick-clone"
 2. The name of the kernel, i.e. 'python'
-2. The name for the new environment
-2. The new version of the kernel to use
-3. Optional: A name for the new yaml file (to overwrite default name: `env_{kernel}{new_ver}_from_{env_ini}.yml`)
+3. The name for the new environment
+4. The new version of the kernel to use
+5. Optional: A name for the new yaml file (to overwrite default name: `env_{kernel}{new_ver}_from_{env_ini}.yml`)
+
+# Call example
+`python -m new_conda_env.main -old_ver 3.10 -new_ver 3.9 -dotless_ver 1 -env_to_clone ds310 -new_env_name ds39`
 
 # TODO
  [ ] Create all needed processing functions & tests  
