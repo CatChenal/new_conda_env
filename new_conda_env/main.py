@@ -4,8 +4,12 @@ conda_new_env is a tool for creating a 'lean' environment from
 an existing one, e.g. when a new kernel version is desired.
 """
 import sys
+from logging import getLogger
 from new_conda_env import envir
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+# ..........................................................................
+
+log = getLogger(__name__)
 
 
 def generate_parser():
@@ -55,7 +59,18 @@ def generate_parser():
     
     return p
 
-        
+
+def check_ver_num(ver):
+    """Truncate micro version number to return major.minor only.
+    (This helps conda with satisfiability.)
+    """
+    pt = '.'
+    if ver.count(pt) == 2:
+        ver = ver[:-ver.find(pt,1)-1]
+        log.info("Version truncated to major.minor.")
+    return ver
+
+
 def main():
     
     conda_env_parser = generate_parser()
@@ -63,8 +78,8 @@ def main():
     args = conda_env_parser.parse_args()
     args = args or ["--help"]
 
-    conda_vir = envir.CondaEnvir(old_ver=args.old_ver,
-                                 new_ver=args.new_ver, 
+    conda_vir = envir.CondaEnvir(old_ver=check_ver_num(args.old_ver),
+                                 new_ver=check_ver_num(args.new_ver), 
                                  dotless_ver=args.dotless_ver,
                                  env_to_clone=args.env_to_clone,
                                  new_env_name=args.new_env_name,
@@ -72,8 +87,6 @@ def main():
                                  display_new_yml=args.display_new_yml,
                                  debug=args.debug)
 
-
-    conda_vir.create_yamls(envir.CondaFlag)
     conda_vir.create_new_env_yaml()
     
 

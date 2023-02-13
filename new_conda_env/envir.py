@@ -10,6 +10,16 @@ from conda.base.context import context, user_rc_path
 import new_conda_env.processing as proc
 # ..........................................................................
 
+warn = """
+Attention:  Even if the new environmental yaml file
+creation is successful, that does not mean the env is satisfiable.
+The only way to find out at the moment* is by running the `conda env create -f`
+command with the file path.
+
+* There is a feature request (github.com/conda issue #7495) to enable the env 
+create command to do a dry-run, which is what would have been used in this project.
+"""
+
 log = getLogger(__name__)
 
 jp = Path.joinpath
@@ -36,16 +46,20 @@ class CondaEnvir:
     - dotless_ver (bool): If True, period(s) in new_ver are removed when forming
       the default `new_env_name`
     - env_to_clone (str): The existing conda environment to 'quick-clone'
-    - new_env_name (str, "default"): If called with default value, the new env name
-      will have this pattern: "env" + self.new_ver, e.g. env3.11 or env311
+    - new_env_name (str, "default"): If called with default value, the name
+      follows this pattern: env{self.kernel[:2]}{self.new_ver.replace('.','')}",
+      e.g.: envpy311
     - kernel (str, "python"): current implementation is for python only
     - display_new_yml (bool, True): output contents?
     - debug (bool, True): flag for tracing calls.
     """
     
     def __init__(self,
-                 old_ver: str="", new_ver: str="", dotless_ver: bool=True,
-                 env_to_clone: str="", new_env_name: str="default",
+                 old_ver: str="",
+                 new_ver: str="",
+                 dotless_ver: bool=True,
+                 env_to_clone: str="",
+                 new_env_name: str="default",
                  kernel: str="python",
                  display_new_yml: bool=True,
                  debug: bool=True):
@@ -54,6 +68,7 @@ class CondaEnvir:
         if self.kernel != "python":
             log.error("Post an enhancement issue!")
             raise NotImplementedError
+            
         if old_ver == "" or new_ver == "":
             msg = "Missing version of old_ver or new_ver (empty string)."
             log.error(msg)
@@ -67,22 +82,16 @@ class CondaEnvir:
         self.basic_info = self.get_conda_info()
         
         self.env_to_clone = env_to_clone
-        self.old_prefix = jp(self.basic_info["env_dir"], self.env_to_clone)
-        if not self.old_prefix.exists():
-            msg = "Typo in <env_to_clone>?"
-            msg = msg + f" Path not found: {self.old_prefix})"
+        old_prefix = jp(self.basic_info["env_dir"], self.env_to_clone)
+        if not old_prefix.exists():
+            msg = "Typo in <env_to_clone>? "
+            msg = msg + f"Path not found: {old_prefix})"
             log.error(msg)
             raise FileNotFoundError
             
         self.old_ver = old_ver
-        self.dotless_ver = dotless_ver
         self.new_ver = (new_ver.replace('.','') if dotless_ver else new_ver)
         self.new_env_name = self.get_new_env_name(new_env_name)
-        # new temp file names:
-        self.yml_nobld = self.get_new_yml_name(CondaFlag.NOBLD)
-        self.yml_hist = self.get_new_yml_name(CondaFlag.HIST)
-        self.intermediate_yamls = None
-        
         self.new_prefix = jp(self.basic_info["env_dir"], self.new_env_name)
         self.new_yml = self.get_lean_yml_pathname()
         self.display_new_yml = display_new_yml 
@@ -147,10 +156,10 @@ class CondaEnvir:
 
     
     def get_rc_python_deps(self) -> bool:
-        out = True #:: def. of "add_pip_as_python_dependency"
+        out = True #:: "add_pip_as_python_dependency" key
         if self.has_user_rc:
-            rc = proc.load_env_yml(self.user_rc)
-            # if key is True, pip, wheel & setuptools 
+            rc = proc.yaml_round_trip_load(self.user_rc)
+            # even if key is True, pip, wheel & setuptools 
             # won't be listed in export --from-history
             out = rc.get("add_pip_as_python_dependency")
             if out is not None and not out:
@@ -160,117 +169,74 @@ class CondaEnvir:
 
     def get_new_env_name(self, str_name):
         if str_name == "default":
-            env_name = "env" + self.new_ver
+            to_ver = self.new_ver.replace('.','')
+            env_name = f"env{self.kernel[:2]}{to_ver}"
         else:
             env_name = str_name
             
         return env_name
 
 
-    def get_new_yml_name(self, flag: CondaFlag) -> str:
-        """Name of intermediate yml file.
-        Pattern: "env_"<env_to_clone>_<CondaFlag name>.yml"
-        """
-        env = self.env_to_clone.replace('.','')
-        return f"env_{env}_{flag.name.lower()}.yml"
-
-
     def get_lean_yml_pathname(self) -> Path:
         """Name of the output produced by new_conda_env.
-        Pattern: <kernel[:2]><to_env>_from_<env_to_clone>.yml"
+        Pattern: env_<kernel[:2]><to_env>_from_<env_to_clone>.yml"
         """
         from_env = self.env_to_clone.replace('.','')
-        to_env = self.new_ver.replace('.','')
-        n = f"env_{self.kernel[:2]}{to_env}_from_{from_env}.yml" 
+        new_env = self.new_env_name.replace('.','')
+        n = f"env_{new_env}_from_{from_env}.yml" 
 
         return jp(Path().home(), n)
 
 
-    def get_export_cmd(self, flag: CondaFlag) -> str:
-        """Return a str command (list did not work; winOS)"""
-        cmd_str = "conda env export -n {} {} --file {}"
-        
-        fla = CondaFlag[flag.name].value  # enforced typing
-        if flag.name == 'HIST':
-            yml_path = proc.path2str(jp(self.user_dir,self.yml_hist))
-        else:
-            yml_path = proc.path2str(jp(self.user_dir,self.yml_nobld))
-        cmd_str = cmd_str.format(self.env_to_clone, fla, yml_path)
-        if self.debug:
-            log.debug(f".get_export_cmd:: {cmd_str}")
-
-        return cmd_str
-
-
-    def create_yamls(self, CondaFlag) -> list[Path]:
-        """Create two yaml files using:
-        `self.get_export_cmd()` with these flags:
-        1. --no-builds: out="env_<env_to_clone>_nobld.yml" ("the long yml")
-        2. --from-history: out="env_<env_to_clone>_hist.yml"
-        Return the file paths: long yml, short yml
+    def get_export_stream(self, flag: CondaFlag) -> str:
+        """Return stream from subprocess.Popen using the 
+        conda env export cmd with either the --no-buils or 
+        --from-history flag as fiven by fla.
         """
-        out = list()
+        fla = CondaFlag[flag.name].value
+        cmd = f"conda env export -n {self.env_to_clone} {fla}"
+        log.info(f"Running cmd: {cmd}")
+        
+        stream = proc.run_export(cmd)
 
-        for i, fla in enumerate([CondaFlag.NOBLD, CondaFlag.HIST]):
-            # save Path obj:
-            out.append(jp(self.user_dir, self.get_new_yml_name(fla)))
-
-            cmd = self.get_export_cmd(fla)
-            if self.debug:
-                log.debug(f"Executing command :: {cmd}")
-                
-            proc.run_export(cmd)
-            
-            log.info(f"'Env file created: {proc.path2str(out[i])}")
-
-        self.intermediate_yamls = out
-        return
+        return stream
 
 
+    def _show_final_msg(self, final_env):
+        if not final_env.exists():
+            raise FileNotFoundError("Oops: final file not found!")
+
+        if self.display_new_yml:
+            print(f"\nFinal environment file: {final_env}\n")
+            print(final_env.read_text())
+
+        msg = "\nYou can now create the new environment with this command:\n"
+        msg = msg + f">conda env create -f {final_env}\n\n"
+        log.info(msg)
+        print(msg)
+
+        
     def create_new_env_yaml(self) -> Path:
         """Perform these step to create the final new_env_yaml:
-        1. Retrieve the pip dependencies dict from nobld_yml & strip
+        1. Retrieve the pip dependencies dict from nobld_export stream & strip
         their versions.
-        2. Update hist_yml with data from .condarc (if found) and new env
+        2. Update hist_export stream with data from .condarc (if found) and new env
         3. Save the new data as per self.new_yml.name
-        """
-        def show_final_msg(self, final_env):
-            if not final_env.exists():
-                raise FileNotFoundError("Oops: final file not found!")
-
-            if self.intermediate_yamls:
-                msg = "\nThese intermediate files can be deleted:\n"
-                msg = msg + " - {}\n - {}".format(*self.intermediate_yamls)
-                log.info(msg)
-                print(msg)
-
-            if self.display_new_yml:
-                print(f"\nFinal environment file: {final_env}\n")
-                print(final_env.read_text())
-            
-            msg = "\nYou can now create the new environment with this command:\n"
-            msg = msg + f">conda env create -f {final_env}\n\n"
-            log.info(msg)
-            print(msg)
-                
-        yml_nobld_path = jp(self.user_dir, self.yml_nobld)
-        assert yml_nobld_path.exists()
-
-        yml_nob = proc.load_env_yml(yml_nobld_path)
-        clean_pips = proc.get_pip_deps(yml_nob)
-        del yml_nob
-        
-        yml_hist_path = jp(self.user_dir, self.yml_hist)
-        assert yml_hist_path.exists()
-
-        old_ker_name = self.kernel + "=" + self.old_ver
-        new_ker_ver = self.kernel + "=" + self.new_ver
-
+        """ 
+        # output filepath
         new_path = jp(self.user_dir, self.new_yml.name)
-        log.info(f"New yml filepath: {new_path}")
+        
+        # pip deps from --no-builds export stream
+        stream_nobld = self.get_export_stream(CondaFlag.NOBLD) 
+        clean_pips = proc.get_pip_deps(proc.yaml_round_trip_load(stream_nobld))
 
-        # hist
-        yml_his = proc.load_env_yml(yml_hist_path)
+        # update of --from-history export stream
+        stream_hist = self.get_export_stream(CondaFlag.HIST)
+        yml_his = proc.yaml_round_trip_load(stream_hist)
+
+        old_ker_name = self.kernel
+        new_ker_ver = old_ker_name + "=" + self.new_ver
+        old_ker_name = old_ker_name + "=" + self.old_ver 
 
         # reset name and prefix keys:
         yml_his["name"] = self.new_env_name
@@ -279,35 +245,39 @@ class CondaEnvir:
         # add new kernel ver as 1st dep:
         if yml_his["dependencies"][0] != new_ker_ver:
             yml_his["dependencies"].insert(0, new_ker_ver)
+        # add pip:
+        yml_his["dependencies"].insert(1,"pip")
 
-        whe_setools = []
+        py_deps = []
         for i, mapping in enumerate(yml_his["dependencies"]):
             if mapping == old_ker_name:
                 _ = yml_his["dependencies"].pop(i)
-            if mapping.startswith("setuptools=") or mapping.startswith("wheel="):
-                whe_setools.append(mapping)
-        
-        at_end = i + 1
-        if self.get_rc_python_deps():
-            if not whe_setools:
-                #print("no wheel or setuptools")
-                yml_his["dependencies"].append("setuptools")
-                yml_his["dependencies"].append("wheel")
-                at_end += 2
-            elif len(whe_setools) == 1:
-                which = "setuptools"
-                if whe_setools[0] == which: # found, other missing
-                    which = "wheel"
-                yml_his["dependencies"].append(which)
+            if mapping.startswith("setuptools") or mapping.startswith("wheel"):
+                py_deps.append(mapping)
+
+            at_end = i + 1
+            if self.get_rc_python_deps():
+                if not py_deps:
+                    #print("no wheel or setuptools")
+                    yml_his["dependencies"].append("setuptools")
+                    yml_his["dependencies"].append("wheel")
+                    at_end += 2
+                elif len(py_deps) == 1:
+                    which = "setuptools"
+                    if py_deps[0] == which: # found, other missing
+                        which = "wheel"
+                    yml_his["dependencies"].append(which)
+                    at_end += 1
+
+            # Finally add the pip dependencies from the 'long' yaml:
+            if clean_pips:
                 at_end += 1
-                
-        yml_his["dependencies"].append("pip")
-        at_end += 1
-        yml_his["dependencies"].insert(at_end, clean_pips)
+                yml_his["dependencies"].insert(at_end, clean_pips)
 
-        proc.save_to_yml(new_path, yml_his)
+            proc.save_to_yml(new_path, yml_his)
 
-        show_final_msg(self, new_path)
+            self._show_final_msg(new_path)
+        
         
         
     def __repr__(self):
@@ -316,4 +286,4 @@ class CondaEnvir:
                         
 
     def __str__(self):
-        return f"DOC: {self.__doc__}"
+        return f"DOC: {self.__doc__}\n{warn}"
