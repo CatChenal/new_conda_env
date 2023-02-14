@@ -1,12 +1,11 @@
 # processing.py
 
-import os
 import sys
 from pathlib import Path
 import re
 from functools import partial
-from logging import getLogger
-from subprocess import Popen, PIPE, run
+import logging
+from subprocess import run
         
 try:
     import ruamel.yaml as yaml
@@ -17,11 +16,10 @@ except ImportError:
         raise ImportError("No yaml library available. To proceed, conda install ruamel.yaml")
 
 from conda.common.serialize import yaml_round_trip_load
-        
-# To create temp files?: see conda/gateways/disk/create.py 
 # ..........................................................................
 
-log = getLogger(__name__)
+logging.basicConfig(level=logging.ERROR)
+log = logging.getLogger(__name__)
 
 winOS = sys.platform == "win32"
 
@@ -32,46 +30,42 @@ def path2str0(p: Path, win_os: bool=True):
 path2str = partial(path2str0, win_os=winOS)
 
 
-def run_export(args: str):
-    proc = Popen(args, stdout=PIPE, stderr=PIPE, universal_newlines=True)
-    stdout, stderr = proc.communicate()
-    
-    #if proc.returncode != 0:
-    #    print(stderr.splitlines())
-    #    raise ValueError("Oops. Don't know which error it is.")
-    if not stdout:
-        msg = "No output. If this is a surprise, it could be the case"
-        msg = msg + "when a command redirects results to a file."
-        print(msg)
-        
-    return stdout
-        
+def run_export(args: str, timout: int=60):
 
-def run_export_prev(args: str):
-    proc = Popen(args, stdout=PIPE, stderr=PIPE)
-    stdout, stderr = proc.communicate()
-    stdout = stdout.decode()
-    try:
-        assert proc.returncode == 0
-    except Exception as e:
-        # print output and rethrow exception
-        log.debug(args)
-        log.debug("--- stdout ---")
-        for line in stdout.splitlines():
-            log.debug(line)
-        log.debug("--- stderr ---")
-        for line in stderr.splitlines():
-            log.debug(line)
-        log.debug("--- end ---")
-
-        raise e  
+    proc = run(args,
+               capture_output=True,
+               text=True)
+    try:   
+        proc.check_returncode()
+        
+        if proc.returncode == 0:
+            outs = proc.stdout
+            
+            if not outs:
+                msg = "No output. If this is a surprise, "
+                msg = msg + "perhaps the command redirected results "
+                msg = msg + "to a file?\n"
+                msg = msg + "The `run` command used args= {}".format(*args)
+                log.debug(msg)
+                print(msg)
+                
+    except TimeoutExpired:
+        proc.kill()
+        log.debug("The `run` command timed out!")
+        
+    except Exception as err:
+        errs = proc.stderr
+        log.debug(f"Unexpected err {errs}, {type(err)}")
+        raise
+        
+    return outs
 
 
 def save_to_yml(yml_filepath, data):
     yam = yaml.YAML()
     with open(yml_filepath, 'wb') as f:
         yam.dump(data, f)
-    log.info(f"File saved to yml: {path2str(yml_filepath)}\n")
+    log.debug(f"File saved to yml: {path2str(yml_filepath)}\n")
 
 
 def get_pip_deps(data, strip_ver=True):
@@ -91,8 +85,3 @@ def get_pip_deps(data, strip_ver=True):
     cleaned = dict(pip=[re.sub(regex,"",p) for p in pip_deps["pip"]])
         
     return cleaned
-
-
-#def load_env_yml(yml_filepath: Path):
-#    log.info(f"Loading yml file: {path2str(yml_filepath)}\n")
-#    return yaml_round_trip_load(yml_filepath)   

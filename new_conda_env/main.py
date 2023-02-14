@@ -1,15 +1,19 @@
-# cli.py
+# main.py
 __doc__ = """
-conda_new_env is a tool for creating a 'lean' environment from
-an existing one, e.g. when a new kernel version is desired.
+conda_new_env is a tool for 'lean cloning' an environment from 
+an existing one, e.g. when a new kernel version is desired. 
+The output is a yml file without dependencies versions except for that 
+of the (python) kernel and includes any pip dependencies."
 """
 import sys
-from logging import getLogger
-from new_conda_env import envir
+import logging
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+
+from new_conda_env import envir
 # ..........................................................................
 
-log = getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
 
 
 def generate_parser():
@@ -52,8 +56,8 @@ def generate_parser():
         help="Wether to display the contents of the new yaml file."
     )
     p.add_argument(
-        "-debug", nargs='?', choices=[1,0],
-        default=1, type=bool,
+        "-debug", nargs='?', choices=[0,1],
+        default=0, type=bool,
         help="Optional: log with debug mode."
     )
     
@@ -86,7 +90,12 @@ def main():
                                  kernel=args.kernel,
                                  display_new_yml=args.display_new_yml,
                                  debug=args.debug)
-
+    if conda_vir.debug:
+        msg = "Basic info:\n"
+        msg = msg + f"- Root: {conda_vir.conda_root}\n"
+        msg = msg + f"- Info dict:\n\t{conda_vir.basic_info}"
+        print(msg)
+            
     conda_vir.create_new_env_yaml()
     
 

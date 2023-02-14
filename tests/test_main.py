@@ -6,7 +6,7 @@ from functools import partial
 
 from logging import getLogger
 import subprocess
-from subprocess import Popen, PIPE
+from subprocess import run
 
 import unittest
 import pytest
@@ -23,7 +23,6 @@ def test_get_export_cmd():
     yml_file = f"env_{env_to_clone}_{fla.name.lower()}.yml"
     yml_path = main.path2str(user_dir.joinpath(yml_file))
         
-    #cmd_list = get_export_cmd(env_to_clone, flag, yml_path)
     return get_export_cmd(env_to_clone, flag, yml_path)
 
 
