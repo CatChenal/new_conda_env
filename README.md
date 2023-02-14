@@ -1,18 +1,18 @@
 # Q: What is `new_conda_env`?
-## A: A new env from an exisitng one... 
+# A: A new env from an exisitng one... 
 
 This (future) conda-forge package performs a "quick-clone" of an existing conda environment when one is needed with a different kernel version.  
 * **Caveat:**
   - At the moment, python is the first (& only) kernel considered.
-  - **There is no guarantee that the new environment is satisfiable e.g. some packages in envA using python 3.x may not exist in envB using python 3.y. The statisfiability check is done by conda at the moment of installation. Unfortunately, there is no `-dry-run` option for `conda env create -f file.yml` (see [conda issue #7495](https://github.com/conda/conda/issues/7495)), so the user must be prepared for fatal errors at creation time.
+  - **There is no guarantee that the new environment is satisfiable** e.g. some packages in envA using python 3.x may not exist in envB using python 3.y. The statisfiability check is done by conda at the moment of installation. Unfortunately, there is no `-dry-run` option for `conda env create -f file.yml` (see [conda issue #7495](https://github.com/conda/conda/issues/7495)), so the user must be prepared for fatal errors at creation time.
 
 # Use case (python kernel)
 
 You've created a conda environment, which you would like to re-create with a different (python) kernel version, i.e. yu would like to have the same packages for a new version of the kernel.
 * Example: You have a current python 3.10 conda environment for GIS applications, geo310. When you learn that there is a package that does exactly what you had planned to do, you want to install it... Except, that package is using python 3.9, so you need to reproduce the python 3.10 environment to work with the lower version.
 
-# Issues
-1. Using the usual `conda env export > environment.yml` or  `conda env export --no-builds > environment.yml` command fixes all packages dependencies, so that will not work with another (python) kernel version.
+# Limitations of the current `conda env export` command:
+1. Using the usual `conda env export > environment.yml` or `conda env export --no-builds > environment.yml` command fixes all packages dependencies, so that will not work with another (python) kernel version.
 2. Using the `--from-history` option, e.g.: `conda env export --from-history > environment.yml` is closer to what's needed because it lists all the packages you installed at the command line, but __it excludes all pip installations__!
 
 # Manual workaround
@@ -37,7 +37,7 @@ The package automates the manual workaround.
 5. `new_env_name (optional)`: The name for the new environment
 6. `kernel (optional)`: Default & only kernel implemented: python
 7. `display_new_yml (optional, True)`: Whether to display the env yml file
-8. `debug (optional, True)`: for logging in debug mode
+8. `debug (optional, False)`: for logging in debug mode
                                  
 # Output:
 The final file is named using this pattern: `f"env_{kernel[:2]}{new_ver}_from_{env_to_clone}.yml"` 
