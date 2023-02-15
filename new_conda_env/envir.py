@@ -99,7 +99,8 @@ class CondaEnvir:
             raise FileNotFoundError
             
         self.old_ver = old_ver
-        self.new_ver = (new_ver.replace('.','') if dotless_ver else new_ver)
+        self.new_ver = new_ver
+        self.dotless_ver = dotless_ver
         self.new_env_name = self.get_new_env_name(new_env_name)
         self.new_prefix = jp(self.basic_info["env_dir"], self.new_env_name)
         self.new_yml = self.get_lean_yml_pathname()
@@ -160,9 +161,10 @@ class CondaEnvir:
     
     def get_rc_python_deps(self) -> bool:
         """The key 'add_pip_as_python_dependency' in condarc
-        is True by default. Even if True, the 3 packages it refers
-        to (pip, setuptools & wheel), will not be listed using the
-        '--from-history' export flag.
+        is True by default. Even so, the 3 packages it refers to 
+        (pip, setuptools & wheel), will not be listed using the
+        '--from-history' export flag (but all those listed under the
+        `create_default_packages` key will).
         Return the key value from user's rc if False, else True.
         """
         out = True
@@ -175,13 +177,14 @@ class CondaEnvir:
 
 
     def get_new_env_name(self, str_name):
-        if str_name == "default":
+        if str_name == "default":  # def name is dotless
             to_ver = self.new_ver.replace('.','')
-            env_name = f"env{self.kernel[:2]}{to_ver}"
-        else:
-            env_name = str_name
-            
-        return env_name
+            return f"env{self.kernel[:2]}{to_ver}"
+        
+        if self.dotless_ver:
+            return str_name.replace('.','')
+        
+        return str_name
 
 
     def get_lean_yml_pathname(self) -> Path:

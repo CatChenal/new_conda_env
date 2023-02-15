@@ -33,7 +33,7 @@ def generate_parser():
     p.add_argument(
         "-dotless_ver", nargs='?', choices=[1,0],
         default=1, type=bool,
-        help="Whether to remove any dor in new_env"
+        help="Whether to remove any dot in new_env name"
     )
     p.add_argument(
         "-env_to_clone", nargs='?', type=str,
