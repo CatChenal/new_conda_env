@@ -1,18 +1,20 @@
 # Q: What is `new_conda_env`?
-# A: A new env from an exisitng one... 
+# A: A new env from an existing one... 
 
-This (future) conda-forge package performs a "quick-clone" of an existing conda environment when one is needed with a different kernel version.  
+This (future) conda-forge package outputs a "lean" yaml either for an existing conda environment or for a new one when, for instance, a user wants to replicate an existing env but with a different kernel version. 
+The "lean" qualifyer reflects both the smaller size of the yaml file: only the user-installed packages &mdash and those listed in .condarc &mdash) appear and the version-less listing of all dependencies - except for that of the (python) kernel.  
+
 * **Caveat:**
   - At the moment, python is the first (& only) kernel considered.
   - **There is no guarantee that the new environment is satisfiable** e.g. some packages in envA using python 3.x may not exist in envB using python 3.y. The statisfiability check is done by conda at the moment of installation. Unfortunately, there is no `-dry-run` option for `conda env create -f file.yml` (see [conda issue #7495](https://github.com/conda/conda/issues/7495)), so the user must be prepared for fatal errors at creation time.
 
 # Use case (python kernel)
 
-You've created a conda environment, which you would like to re-create with a different (python) kernel version, i.e. yu would like to have the same packages for a new version of the kernel.
+You've created a conda environment, which you would like to re-create with a different (python) kernel version, i.e. you would like to have the same packages for a new version of the kernel.
 * Example: You have a current python 3.10 conda environment for GIS applications, geo310. When you learn that there is a package that does exactly what you had planned to do, you want to install it... Except, that package is using python 3.9, so you need to reproduce the python 3.10 environment to work with the lower version.
 
 # Limitations of the current `conda env export` command:
-1. Using the usual `conda env export > environment.yml` or `conda env export --no-builds > environment.yml` command fixes all packages dependencies, so that will not work with another (python) kernel version.
+1. The usual `conda env export > environment.yml` or `conda env export --no-builds > environment.yml` commands fix all packages dependencies, so they will not work with another (python) kernel version.
 2. Using the `--from-history` option, e.g.: `conda env export --from-history > environment.yml` is closer to what's needed because it lists all the packages you installed at the command line, but __it excludes all pip installations__!
 
 # Manual workaround
@@ -25,7 +27,8 @@ You've created a conda environment, which you would like to re-create with a dif
  4. Save `env_hist.yml`, or 'save as' a better name hinting at the creation process, e.g. `env39_from_geo310.yml`. (Note: `env39` would be the default naming pattern if no name is provided for the new env.)
 
 # Solution implemented in `new_conda_env`:
-The package automates the manual workaround.
+### => The package automates the manual workaround.  
+
 ![wanted](./images/wanted_venn.drawio.svg)
 
 ![C1 view](./images/c1_view.drawio.svg)
@@ -36,8 +39,8 @@ The package automates the manual workaround.
 4. `env_to_clone`: The name of the conda env to "quick-clone"
 5. `new_env_name (optional)`: The name for the new environment
 6. `kernel (optional)`: Default & only kernel implemented: python
-7. `display_new_yml (optional, True)`: Whether to display the env yml file
-8. `debug (optional, False)`: for logging in debug mode
+7. `display_new_yml (optional, True)`: Whether to display the new yml file
+8. `log_level (optional, 'ERROR')`: for logging control
                                  
 # Output:
 The final file is named using this pattern: `f"env_{kernel[:2]}{new_ver}_from_{env_to_clone}.yml"` 
@@ -48,7 +51,7 @@ The final file is named using this pattern: `f"env_{kernel[:2]}{new_ver}_from_{e
 # TODO
  [ x ] Create all needed processing functions
  [ x ] cli: Create
- [ x ] ~~cli: Add flag on cli to cleanup intermediate files~~ No more of those!
+ [ x ] Add check in argparse: kernel version needs a dot
  [ ] Add tests
  [ ] Upload to conda-forge
  [ ] Do same for julia, R kernels (if requested with enhancement issues)  
