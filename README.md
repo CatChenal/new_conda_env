@@ -2,7 +2,7 @@
 # A: A new env from an existing one... 
 
 This (future) conda-forge package outputs a "lean" yaml either for an existing conda environment or for a new one when, for instance, a user wants to replicate an existing env but with a different kernel version. 
-The "lean" qualifyer reflects both the smaller size of the yaml file: only the user-installed packages &mdash and those listed in .condarc &mdash) appear and the version-less listing of all dependencies - except for that of the (python) kernel.  
+The "lean" qualifyer reflects both the smaller size of the yaml file: only the user-installed packages &mdash; and those listed in .condarc &mdash;) appear and the version-less listing of all dependencies - except for that of the (python) kernel.  
 
 * **Caveat:**
   - At the moment, python is the first (& only) kernel considered.
