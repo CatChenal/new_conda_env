@@ -2,11 +2,11 @@
 # A: A new env from an existing one... 
 
 This (future) conda-forge package outputs a "lean" yaml either for an existing conda environment or for a new one when, for instance, a user wants to replicate an existing env but with a different kernel version. 
-The "lean" qualifyer reflects both the smaller size of the yaml file: only the user-installed packages &mdash; and those listed in .condarc &mdash;) appear and the version-less listing of all dependencies - except for that of the (python) kernel.  
+The "lean" qualifyer reflects both the smaller size of the yaml file: only the user-installed packages &mdash; and those listed in .condarc &mdash; appear and the version-less listing of all dependencies - except for that of the (python) kernel.  
 
-* **Caveat:**
+* **Caveats:**
   - At the moment, python is the first (& only) kernel considered.
-  - **There is no guarantee that the new environment is satisfiable** e.g. some packages in envA using python 3.x may not exist in envB using python 3.y. The statisfiability check is done by conda at the moment of installation. Unfortunately, there is no `-dry-run` option for `conda env create -f file.yml` (see [conda issue #7495](https://github.com/conda/conda/issues/7495)), so the user must be prepared for fatal errors at creation time.
+  - **There is no guarantee that the new environment is satisfiable** e.g. some packages in envA using python 3.x may not exist in envB using python 3.y. The statisfiability check is left to be done by conda at the moment of installation. Unfortunately, there is no `-dry-run` option for `conda env create -f file.yml` (see [conda issue #7495](https://github.com/conda/conda/issues/7495)), so the user must be prepared for possible fatal errors at creation time.
 
 # Use case (python kernel)
 
