@@ -10,12 +10,23 @@ from conda.base.context import context, user_rc_path
 import new_conda_env.processing as proc
 # ..........................................................................
 
+# unused:
+logr_envir = logging.getLogger(__name__)
+logr_envir.setLevel(logging.ERROR)
+
+sh = logging.StreamHandler()
+formatter = logging.Formatter('%(name)-15s: %(levelname)-8s %(message)s')
+sh.setFormatter(formatter)
+logr_envir.addHandler(sh)
+
+
 msgf_create_env = """
 If necessary, you can open the file to tweak it (e.g. the networkx
 package can be removed from the pip deps and added to the conda deps).
 
 You can now create the new environment with this command:
 `conda env create -f {}`\n"""
+
 
 msg_warn = """Attention:  Even if the new environmental yaml file creation 
 is successful, that does not mean the env is satisfiable.
@@ -25,9 +36,6 @@ The only way to find out at the moment* is by running the
 * There is a feature request (github.com/conda issue #7495) to enable the env 
 create command to do a dry-run, which is what would have been used in this project.
 """
-
-logging.basicConfig(level=logging.ERROR)
-log = logging.getLogger(__name__)
 
 jp = Path.joinpath
 
@@ -44,7 +52,7 @@ class CondaEnvir:
                      new_env_name: str="default",
                      kernel: str="python",
                      display_new_yml: bool=True,
-                     debug: bool=False)
+                     log_level: str="ERROR")
     [* see README.md]
     
     Arguments:
@@ -58,7 +66,7 @@ class CondaEnvir:
       e.g.: envpy311
     - kernel (str, "python"): current implementation is for python only
     - display_new_yml (bool, True): output contents?
-    - debug (bool, False): flag for tracing calls.
+    - log_level (str, "ERROR"): to set class logging level.
     """
     
     def __init__(self,
@@ -69,23 +77,25 @@ class CondaEnvir:
                  new_env_name: str="default",
                  kernel: str="python",
                  display_new_yml: bool=True,
-                 debug: bool=False):
+                 log_level: str="ERROR"):
+        
+        self.log = logging.getLogger("new_conda_env.envir.CondaEnvir")
+        self.log.setLevel(log_level)
         
         self.kernel = kernel.lower()
         if self.kernel != "python":
-            log.error("Post an enhancement issue!")
+            self.log.error("Post an enhancement issue!")
             raise NotImplementedError
             
         if old_ver == "" or new_ver == "":
             msg = "Missing version: empty old_ver or new_ver str."
-            log.error(msg)
+            self.log.error(msg)
             raise ValueError(msg)
 
         if (new_ver == old_ver):
             # no problem: user wants a "lean" yml file
-            log.warning("The old & new versions are identical.")
+            self.log.warning("The old & new versions are identical.")
             
-        self.debug = debug
         self.conda_root = Path(os.getenv("CONDA_ROOT"))
         self.basic_info = self.get_conda_info()
         self.user_dir = self.basic_info["user_condarc"].parent
@@ -95,7 +105,7 @@ class CondaEnvir:
         if not old_prefix.exists():
             msg = "Typo in <env_to_clone>? "
             msg = msg + f"Path not found: {old_prefix})"
-            log.error(msg)
+            self.log.error(msg)
             raise FileNotFoundError
             
         self.old_ver = old_ver
@@ -107,10 +117,9 @@ class CondaEnvir:
         self.display_new_yml = display_new_yml 
         self.user_rc = self.get_user_rc()
         self.has_user_rc = self.user_rc is not None 
-        
-        
-    @staticmethod
-    def get_conda_info() -> dict:
+
+
+    def get_conda_info(self) -> dict:
         """Return minimal number of conda-calculated 
         variables in a dict.
         All paths -> Path objects.
@@ -122,7 +131,7 @@ class CondaEnvir:
             msg = "\n`new_cond_env` should be run in (base), but this "
             msg = msg + f"environment is activated: {prefix_active.name}\n"
             msg = msg + "Deactivate it & re-run `new_cond_env`."
-            log.error(msg)
+            self.log.error(msg)
             raise ValueError
         
         #check curr path: NECESSARY??
@@ -134,7 +143,7 @@ class CondaEnvir:
             `new_cond_env` should be run in the user's home folder, i.e. 
             the path from a just opened conda prompt (with an activated 
             base environment)."""
-            log.error(msg)
+            self.log.error(msg)
             raise ValueError
         
         d = {"conda_prefix": prefix_conda,
@@ -154,7 +163,7 @@ class CondaEnvir:
         rc = self.basic_info["user_condarc"]
         if rc.exists():
             return rc
-        log.debug(f"No user-defined .condarc found in: {rc}.")
+        self.log.debug(f"No user-defined .condarc found in: {rc}.")
         
         return None
 
@@ -208,7 +217,7 @@ class CondaEnvir:
         conda env export cmd with either the --no-builds or 
         --from-history flag as given by flag.
         """
-        log.debug(f"Running cmd: {cmd}")
+        self.log.debug(f"Running cmd: {cmd}")
         stream = proc.run_export(cmd)
 
         return stream
@@ -219,7 +228,7 @@ class CondaEnvir:
         if not final_env.exists():
             msg = "Oops: final file not found!\n"
             msg = msg + f"\t{final_env}"
-            log.error(msg)
+            self.log.error(msg)
             raise FileNotFoundError(msg)
 
         if self.display_new_yml:
@@ -245,14 +254,14 @@ class CondaEnvir:
         yml_nobld = proc.yaml_round_trip_load(stream_nobld)
         clean_pips = proc.get_pip_deps(yml_nobld)
         #del yml_nobld
-        log.debug(f"> clean_pips:\n{clean_pips}")
+        self.log.debug(f"> clean_pips:\n{clean_pips}")
                  
         # update of --from-history export stream
         HIST = "--from-history"
         cmd = self.get_export_cmd(HIST)
         stream_hist = self.get_export_stream(cmd)
         yml_his = proc.yaml_round_trip_load(stream_hist)
-        log.debug(f"> yml_his:\n{yml_his}")
+        self.log.debug(f"> yml_his:\n{yml_his}")
                  
         old_ker_name = self.kernel
         new_ker_ver = old_ker_name + "=" + self.new_ver

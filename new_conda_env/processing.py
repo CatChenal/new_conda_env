@@ -15,13 +15,19 @@ except ImportError:
     except ImportError:
         raise ImportError("No yaml library available. To proceed, conda install ruamel.yaml")
 
-from conda.common.serialize import yaml_round_trip_load
+from conda.common.serialize import yaml_round_trip_load, yaml_round_trip_dump
 # ..........................................................................
-
-logging.basicConfig(level=logging.ERROR)
 log = logging.getLogger(__name__)
+log.setLevel(logging.ERROR)
+
+sh = logging.StreamHandler()
+formatter = logging.Formatter('%(name)-15s: %(levelname)-8s %(message)s')
+sh.setFormatter(formatter)
+log.addHandler(sh)
+
 
 winOS = sys.platform == "win32"
+
 
 def path2str0(p: Path, win_os: bool=True):
     s = str(p) if win_os else p.as_posix()
@@ -62,9 +68,10 @@ def run_export(args: str, timout: int=60):
 
 
 def save_to_yml(yml_filepath, data):
-    yam = yaml.YAML()
+    #yam = yaml.YAML()
     with open(yml_filepath, 'wb') as f:
-        yam.dump(data, f)
+        #yam.dump(data, f)
+        yaml_round_trip_dump(data, f)
     log.debug(f"File saved to yml: {path2str(yml_filepath)}\n")
 
 
