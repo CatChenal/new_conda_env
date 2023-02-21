@@ -24,7 +24,7 @@ You've created a conda environment, which you would like to re-create with a dif
    3.1 Change `name` to that of the new environment  
    3.2 Insert the missing pip installations (minus version numbers) listed in `env_nobld.yml` in the dependencies list & change the python version to the new one (or insert a line for python if missing)  
    3.3 Change the prefix line so that the path uses the new `name`  
- 4. Save `env_hist.yml`, or 'save as' a better name hinting at the creation process, e.g. `env39_from_geo310.yml`. (Note: `env39` would be the default naming pattern if no name is provided for the new env.)
+ 4. Save `env_hist.yml`, or 'save as' a better name hinting at the creation process, e.g. `lean_env39_from_geo310.yml`. (Note: `env39` would be the default naming pattern if no name is provided for the new env.)
 
 # Solution implemented in `new_conda_env`:
 ### => The package automates the manual workaround.  
@@ -43,10 +43,10 @@ You've created a conda environment, which you would like to re-create with a dif
 8. `log_level (optional, 'ERROR')`: for logging control
                                  
 # Output:
-The final file is named using this pattern: `f"env_{kernel[:2]}{new_ver}_from_{env_to_clone}.yml"` 
+The final file is named using this pattern: `f"lean_env_{kernel[:2]}{new_ver}_from_{env_to_clone}.yml"` 
 
 # Call example
-`python -m new_conda_env.main -old_ver 3.10 -new_ver 3.9 -dotless_ver 1 -env_to_clone ds310 -new_env_name ds39`
+`python -m new_conda_env.cli -old_ver 3.10 -new_ver 3.9 -dotless_ver 1 -env_to_clone ds310 -new_env_name ds39`
 
 # TODO
  [ x ] Create all needed processing functions

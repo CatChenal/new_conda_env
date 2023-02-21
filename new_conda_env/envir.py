@@ -202,7 +202,7 @@ class CondaEnvir:
         """
         from_env = self.env_to_clone.replace('.','')
         new_env = self.new_env_name.replace('.','')
-        n = f"env_{new_env}_from_{from_env}.yml" 
+        n = f"lean_{new_env}_from_{from_env}.yml" 
 
         return jp(self.user_dir, n)
 

@@ -67,6 +67,7 @@ _temp*
 _tmp*
 _unused*
 _original
+notebooks
 
 # Sphinx documentation
 docs/_build/
