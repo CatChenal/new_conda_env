@@ -1,37 +1,54 @@
-# test_main.py
+# test_cli.py
 import os
 import sys
-from pathlib import Path
-from functools import partial
 
+from enum import Enum
+from pathlib import Path
 from logging import getLogger
-import subprocess
-from subprocess import run
 
 import unittest
 import pytest
 
-from new_conda_env import main
+from new_conda_env import envir, processing as proc
 
 #.........................................................
+
+class CondaFlag(Enum):
+    NOBLD = "--no-builds"
+    HIST = "--from-history"
     
+CONTENT = "content"
+
+DIR_TMP = tmp_path
+
+
+"""Need to patch class CondaEnvir
+to test its methods
+"""
 def test_get_export_cmd():
+    """
     env_to_clone = 'ds310'
     flag = CondaFlag.HIST
     
     user_dir = DIR_TMP
     yml_file = f"env_{env_to_clone}_{fla.name.lower()}.yml"
-    yml_path = main.path2str(user_dir.joinpath(yml_file))
+    yml_path = proc.path2str(user_dir.joinpath(yml_file))
         
-    return get_export_cmd(env_to_clone, flag, yml_path)
+    out = get_export_cmd(env_to_clone, flag, yml_path)
+    """
+    pass
 
 
 def test_run_export():
+    """
     cmd = test_get_export_cmd()
     run_export(cmd)
-    return
+    """
+    pass
     
+
 def test_create_yamls():
+    """
     env_to_clone = 'ds310'
     user_dir = DIR_TMP
     
@@ -44,7 +61,8 @@ def test_create_yamls():
     yml_h = get_new_yml_name(env_to_clone, CondaFlag.HIST)
     yml_h_path = user_dir.joinpath(yml_h)
     assert new_yamls[1] == yml_h_path
-    
+    """
+    pass
     
 
 

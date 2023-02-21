@@ -1,4 +1,4 @@
-# main.py
+# cli.py
 __doc__ = """Main module (cli):
 conda_new_env is a tool for 'lean cloning' an environment from 
 an existing one, e.g. when a new kernel version is desired. 
@@ -11,8 +11,13 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 from new_conda_env import envir
 # ..........................................................................
+#logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 log = logging.getLogger(__name__)
+sh = logging.StreamHandler()
+formatter = logging.Formatter('%(name)-15s: %(levelname)-8s %(message)s')
+sh.setFormatter(formatter)
+log.addHandler(sh)
 log.setLevel(logging.ERROR)
 
 
@@ -20,7 +25,8 @@ def generate_parser():
     
     p = ArgumentParser(prog="new_conda_env",
         description = __doc__,
-        formatter_class=ArgumentDefaultsHelpFormatter
+        formatter_class = ArgumentDefaultsHelpFormatter,
+        exit_on_error = False
     )
     p.add_argument(
         "-old_ver", nargs="?", type=str,
@@ -96,6 +102,9 @@ def main():
     args = conda_env_parser.parse_args()
     args = args or ["--help"]
 
+    log.setLevel(args.log_level)
+
+
     conda_vir = envir.CondaEnvir(old_ver=check_ver_num(args.old_ver),
                                  new_ver=check_ver_num(args.new_ver), 
                                  dotless_ver=args.dotless_ver,
@@ -109,4 +118,5 @@ def main():
     
 
 if __name__ == "__main__":
+
     sys.exit(main())
