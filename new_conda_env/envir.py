@@ -25,16 +25,19 @@ If necessary, you can open the file to tweak it (e.g. the networkx
 package can be removed from the pip deps and added to the conda deps).
 
 You can now create the new environment with this command:
-`conda env create -f {}`\n"""
+`conda env create -f {}`
+"""
 
 
-msg_warn = """Attention:  Even if the new environmental yaml file creation 
+msg_warn = """
+ATTENTION:  Even if the new environmental yaml file creation 
 is successful, that does not mean the env is satisfiable.
 The only way to find out at the moment* is by running the 
 `conda env create -f` command with the file path.
 
-* There is a feature request (github.com/conda issue #7495) to enable the env 
-create command to do a dry-run, which is what would have been used in this project.
+* There is a feature request (github.com/conda issue #7495) to have
+`conda env create` do a dry-run, which is what would have been used 
+in this project.
 """
 
 jp = Path.joinpath
@@ -83,9 +86,6 @@ class CondaEnvir:
         self.log.setLevel(log_level)
         
         self.kernel = kernel.lower()
-        if self.kernel != "python":
-            self.log.error("Post an enhancement issue!")
-            raise NotImplementedError
             
         if old_ver == "" or new_ver == "":
             msg = "Missing version: empty old_ver or new_ver str."
@@ -174,7 +174,7 @@ class CondaEnvir:
         (pip, setuptools & wheel), will not be listed using the
         '--from-history' export flag (but all those listed under the
         `create_default_packages` key will).
-        Return the key value from user's rc if False, else True.
+        Return the key value from user's rc if set False, else True.
         """
         out = True
         if self.has_user_rc:
@@ -197,25 +197,24 @@ class CondaEnvir:
 
 
     def get_lean_yml_pathname(self) -> Path:
-        """Name of the output produced by new_conda_env.
-        Pattern: env_<kernel[:2]><to_env>_from_<env_to_clone>.yml"
+        """Name of the output yml file produced by new_conda_env.
+        Pattern: lean_<new_env>_from_<env_to_clone>.yml"
         """
-        from_env = self.env_to_clone.replace('.','')
         new_env = self.new_env_name.replace('.','')
+        from_env = self.env_to_clone.replace('.','')
         n = f"lean_{new_env}_from_{from_env}.yml" 
 
         return jp(self.user_dir, n)
 
-    
-    def get_export_cmd(self, flag: str) -> str:
+    @staticmethod
+    def get_export_cmd(env_name:str, flag: str) -> str:
         cmd = "conda env export -n {} {}"
-        return cmd.format(self.env_to_clone, flag)
+        return cmd.format(env_name, flag)
 
     
     def get_export_stream(self, cmd: str) -> str:
         """Return stream from subprocess.Popen using the 
-        conda env export cmd with either the --no-builds or 
-        --from-history flag as given by flag.
+        conda env export cmd.
         """
         self.log.debug(f"Running cmd: {cmd}")
         stream = proc.run_export(cmd)
@@ -249,18 +248,21 @@ class CondaEnvir:
 
         # pip deps from --no-builds export stream
         NOBLD = "--no-builds"
-        cmd = self.get_export_cmd(NOBLD)
+        cmd = self.get_export_cmd(self.env_to_clone, NOBLD)
         stream_nobld = self.get_export_stream(cmd)
-        yml_nobld = proc.yaml_round_trip_load(stream_nobld)
+        yml_nobld = proc.load_as_yml(stream_nobld)
+        print(type(yml_nobld))
+
         clean_pips = proc.get_pip_deps(yml_nobld)
         #del yml_nobld
         self.log.debug(f"> clean_pips:\n{clean_pips}")
                  
         # update of --from-history export stream
         HIST = "--from-history"
-        cmd = self.get_export_cmd(HIST)
+        cmd = self.get_export_cmd(self.env_to_clone, HIST)
         stream_hist = self.get_export_stream(cmd)
-        yml_his = proc.yaml_round_trip_load(stream_hist)
+        yml_his = proc.load_as_yml(stream_hist)
+
         self.log.debug(f"> yml_his:\n{yml_his}")
                  
         old_ker_name = self.kernel

@@ -1,0 +1,45 @@
+name: ds39
+channels:
+- conda-forge
+- bioconda
+- pyviz
+- nvidia
+- defaults
+dependencies:
+- python=3.9
+- pip
+- numpy
+- scipy
+- ipython
+- ipykernel
+- ipywidgets
+- matplotlib
+- seaborn
+- pandas
+- python-dotenv
+- python-graphviz
+- pygraphviz
+- networkx
+- scikit-learn
+- dask
+- pyspark
+- pyarrow
+- defusedxml
+- beautifulsoup4
+- pytest
+- pylint
+- black
+- flake8
+- setuptools
+- wheel
+- pip:
+  - actdiag
+  - blockdiag
+  - blockdiagmagic
+  - funcparserlib
+  - matplotlib-venn
+  - nwdiag
+  - seqdiag
+  - watermark
+  - webcolors
+prefix: C:\Users\catch\miniconda3\envs\ds39

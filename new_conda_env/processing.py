@@ -4,19 +4,12 @@ import sys
 from pathlib import Path
 import re
 from functools import partial
+import subprocess
 import logging
-from subprocess import run
-        
-try:
-    import ruamel.yaml as yaml
-except ImportError:
-    try:
-        import ruamel_yaml as yaml
-    except ImportError:
-        raise ImportError("No yaml library available. To proceed, conda install ruamel.yaml")
 
 from conda.common.serialize import yaml_round_trip_load, yaml_round_trip_dump
 # ..........................................................................
+
 log = logging.getLogger(__name__)
 log.setLevel(logging.ERROR)
 
@@ -38,9 +31,7 @@ path2str = partial(path2str0, win_os=winOS)
 
 def run_export(args: str, timout: int=60):
 
-    proc = run(args,
-               capture_output=True,
-               text=True)
+    proc = subprocess.run(args, capture_output=True, text=True)
     try:   
         proc.check_returncode()
         
@@ -54,8 +45,8 @@ def run_export(args: str, timout: int=60):
                 msg = msg + "The `run` command used args= {}".format(*args)
                 log.debug(msg)
                 print(msg)
-                
-    except TimeoutExpired:
+
+    except subprocess.TimeoutExpired:
         proc.kill()
         log.debug("The `run` command timed out!")
         
@@ -68,11 +59,14 @@ def run_export(args: str, timout: int=60):
 
 
 def save_to_yml(yml_filepath, data):
-    #yam = yaml.YAML()
     with open(yml_filepath, 'wb') as f:
-        #yam.dump(data, f)
         yaml_round_trip_dump(data, f)
     log.debug(f"File saved to yml: {path2str(yml_filepath)}\n")
+
+
+def load_as_yml(yml_stream):
+    data = yaml_round_trip_load(yml_stream)
+    return data
 
 
 def get_pip_deps(data, strip_ver=True):
