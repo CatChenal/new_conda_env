@@ -134,23 +134,10 @@ class CondaEnvir:
             self.log.error(msg)
             raise ValueError
         
-        #check curr path: NECESSARY??
-        #should be path from just opened conda prompt ==user's?
-        # to test: problem with admin-installed conda on linux?
-        # or: self.conda_root.parent != Path().home() ???
-        if prefix_conda.parent != Path().home():
-            msg = """
-            `new_cond_env` should be run in the user's home folder, i.e. 
-            the path from a just opened conda prompt (with an activated 
-            base environment)."""
-            self.log.error(msg)
-            raise ValueError
-        
         d = {"conda_prefix": prefix_conda,
              "active_prefix": prefix_active,
              "user_condarc": Path(user_rc_path),
-             # only consider user's .condarc; 
-             # -> relies on ordering + possibly OS: not robust -> test
+             # only consider user's .condarc, e.g.: <user path>\miniconda3\\envs
              "env_dir": Path(context.envs_dirs[0]),
              #what about other kernels?
              "default_python": context.default_python # unused
@@ -206,6 +193,7 @@ class CondaEnvir:
 
         return jp(self.user_dir, n)
 
+
     @staticmethod
     def get_export_cmd(env_name:str, flag: str) -> str:
         cmd = "conda env export -n {} {}"
@@ -238,7 +226,7 @@ class CondaEnvir:
         print(msg_warn)
 
     
-    def create_new_env_yaml(self) -> Path:
+    def get_new_env_yaml(self) -> Path:
         """Perform these step to create the final new_env_yaml:
         1. Retrieve the pip dependencies dict from nobld_export stream & strip
         their versions.
@@ -255,7 +243,6 @@ class CondaEnvir:
 
         clean_pips = proc.get_pip_deps(yml_nobld)
         #del yml_nobld
-        self.log.debug(f"> clean_pips:\n{clean_pips}")
                  
         # update of --from-history export stream
         HIST = "--from-history"
@@ -295,8 +282,11 @@ class CondaEnvir:
                 yml_his["dependencies"].append("wheel")
 
         # Finally add the pip deps from the 'long' yaml:
-        if clean_pips:
+        if clean_pips is not None:
+            self.log.debug(f"> clean_pips:\n{clean_pips}")
             yml_his["dependencies"].append(clean_pips)
+        else:
+            self.log.debug(f"> No pip deps found.")
 
         proc.save_to_yml(self.new_yml, yml_his)
 

@@ -42,7 +42,7 @@ def run_export(args: str, timout: int=60):
                 msg = "No output. If this is a surprise, "
                 msg = msg + "perhaps the command redirected results "
                 msg = msg + "to a file?\n"
-                msg = msg + "The `run` command used args= {}".format(*args)
+                msg = msg + "The `run` command used these args= {}".format(*args)
                 log.debug(msg)
                 print(msg)
 

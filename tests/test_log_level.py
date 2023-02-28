@@ -1,7 +1,5 @@
 # test_log_level.py
 
-import os
-import sys
 from pathlib import Path
 from logging import getLogger
 
@@ -12,7 +10,7 @@ from new_conda_env import envir
 
 ########## WIP ##########
 
-mocker = MagicMock()
+mocker = mock.MagicMock()
 """
 @mock.patch('library.library.Library.query_fun')
 def test_get_response(self, mock_query_fun):
@@ -29,7 +27,7 @@ def test_get_response(self, mock_create_new_env_yaml):
     mock_create_new_env_yaml.return_value = Path().home()
     response = MockBotter.get_response()
     self.assertIsNotNone(response)    
-"""
+
 
 class CondaEnvirTestCase(unittest.TestCase):
 
@@ -37,7 +35,7 @@ class CondaEnvirTestCase(unittest.TestCase):
         # Create a mock to return for MyClass.
         m = mock.MagicMock()
         # Patch my_method's return value.
-        m.create_new_env_yaml() = mock.Mock(return_value=Path().home())
+        m.create_new_env_yaml() == mock.Mock(return_value=Path().home())
 
         # Patch MyClass. Here, we could use autospec=True for more
         # complex classes.
@@ -52,5 +50,7 @@ class CondaEnvirTestCase(unittest.TestCase):
         self.assertEqual(value, 2)
 
 
+
 if __name__ == '__main__':
     unittest.main()
+"""

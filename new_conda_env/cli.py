@@ -37,43 +37,43 @@ def generate_parser():
         exit_on_error = True
     )
     p.add_argument(
-        "-old_ver", nargs=1, type=str, required=True,
+        "-old_ver",  type=str, required=True,
         help="""The kernel (python) version of an existing env to 'clone'. 
         For example, 3.8 but not 38 (python kernel)."""
     )
     p.add_argument(
-        "-new_ver", nargs=1, type=str, required=True,
+        "-new_ver", type=str, required=True,
         help="""The kernel (python) version of the new env. 
         For example, 3.8 but not 38 (python kernel)."""
     )
     p.add_argument(
-        "-dotless_ver", nargs=1, choices=[1,0],
+        "-dotless_ver", choices=[1,0],
         default=1, type=bool,
         help="Whether to remove any dot in the final yml (default) filename."
     )
     p.add_argument(
-        "-env_to_clone", nargs=1, type=str, required=True,
+        "-env_to_clone", type=str, required=True,
         help="Name of an existing env to 'clone'."
     )
     p.add_argument(
-        "-new_env_name", nargs=1, type=str,
+        "-new_env_name", type=str,
         default="default",
         help="""Optional: name for the new env yml file else default pattern used:
           Pattern: 'env' + self.new_ver, e.g. env3.11 or env311"""
     ) 
     p.add_argument(
-        "-kernel", nargs=1, choices=["python"], type=str,
+        "-kernel",  choices=["python"], type=str,
         default="python",
         help="Optional: 'python' is the default (and only kernel so far implemented)."
     )
     p.add_argument(
-        "-display_new_yml", nargs=1, choices=[1,0],
+        "-display_new_yml", choices=[1,0],
         default=1, type=bool,
         help="Wether to display the contents of the new yaml file."
     )
     level_choices = list(logging._nameToLevel.keys())
     p.add_argument(
-        "-log_level", nargs=1, choices=level_choices,
+        "-log_level",  choices=level_choices,
         default="ERROR", type=str,
         help="Optional: log with debug mode."
     )
@@ -133,7 +133,7 @@ def main(argv=None):
                                  display_new_yml=args.display_new_yml,
                                  log_level=args.log_level)
             
-    conda_vir.create_new_env_yaml()
+    conda_vir.get_new_env_yaml()
 
     return 0
     
