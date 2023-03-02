@@ -1,3 +1,11 @@
+# Scrapy stuff:
+.scrapy
+_temp*
+_tmp*
+_unused*
+_original
+notebooks/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -60,14 +68,6 @@ db.sqlite3
 # Flask stuff:
 instance/
 .webassets-cache
-
-# Scrapy stuff:
-.scrapy
-_temp*
-_tmp*
-_unused*
-_original
-notebooks
 
 # Sphinx documentation
 docs/_build/

@@ -11,7 +11,6 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 from new_conda_env import envir
 # ..........................................................................
-#logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 log = logging.getLogger(__name__)
 sh = logging.StreamHandler()
@@ -21,7 +20,7 @@ log.addHandler(sh)
 log.setLevel(logging.ERROR)
 
 
-# msgf_ :: message string requiering add'l .format() fn
+# msgf_ :: message string requireing add'l .format() fn
 msgf_high_ver = """
 ATTENTION [Version validation: High version without period]
     Is this version: '{}' missing a period?
@@ -31,7 +30,7 @@ ATTENTION [Version validation: High version without period]
 
 def generate_parser():
     
-    p = ArgumentParser(prog="new_conda_env",
+    p = ArgumentParser(prog="new_conda_env.cli",
         description = __doc__,
         formatter_class = ArgumentDefaultsHelpFormatter,
         exit_on_error = True
