@@ -21,23 +21,23 @@ logr_envir.addHandler(sh)
 
 
 msgf_create_env = """
-If necessary, you can open the file to tweak it (e.g. the networkx
-package can be removed from the pip deps and added to the conda deps).
+    If necessary, you can open the file to tweak it (e.g. the networkx
+    package can be removed from the pip deps and added to the conda deps).
 
-You can now create the new environment with this command:
-`conda env create -f {}`
+    You can now create the new environment with this command:
+    `conda env create -f {}`
 """
 
 
 msg_warn = """
-ATTENTION:  Even if the new environmental yaml file creation 
-is successful, that does not mean the env is satisfiable.
-The only way to find out at the moment* is by running the 
-`conda env create -f` command with the file path.
+ATTENTION:  Even if the new environmental yaml file creation is 
+    successful, that does not mean the env is satisfiable.
+    The only way to find out at the moment* is by running the 
+    `conda env create -f` command with the file path.
 
-* There is a feature request (github.com/conda issue #7495) to have
-`conda env create` do a dry-run, which is what would have been used 
-in this project.
+    * There is a feature request (github.com/conda issue #7495) to have
+    `conda env create` do a dry-run, which is what would have been used 
+    in this project.
 """
 
 jp = Path.joinpath
@@ -239,7 +239,6 @@ class CondaEnvir:
         cmd = self.get_export_cmd(self.env_to_clone, NOBLD)
         stream_nobld = self.get_export_stream(cmd)
         yml_nobld = proc.load_as_yml(stream_nobld)
-        print(type(yml_nobld))
 
         clean_pips = proc.get_pip_deps(yml_nobld)
         #del yml_nobld
