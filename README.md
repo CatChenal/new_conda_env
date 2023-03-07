@@ -104,15 +104,15 @@ dependencies:
       - seqdiag
       - watermark
       - webcolors
-prefix: C:\Users\catch\miniconda3\envs\envpy39
+prefix: C:\Users\<you>\miniconda3\envs\envpy39
 ```
 
 # TODO
- [ x ] Create all needed processing functions
- [ x ] cli: Create
- [ x ] Add check in argparse: kernel version needs a dot
- [ x ] Add tests
- [ ] Upload to conda-forge
+ [ x ] Create all needed processing functions  
+ [ x ] cli: Create  
+ [ x ] Add check in argparse: kernel version needs a dot  
+ [ x ] Add tests  
+ [ ] Upload to conda-forge  
  [ ] Do same for julia, R kernels (if requested with enhancement issues)  
  
 ---
