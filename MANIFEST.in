@@ -1,0 +1,12 @@
+recursive-include new_conda_env/*.py
+recursive-include images *
+include LICENSE
+
+prune build
+
+exclude new_conda_env/.git
+exclude new_conda_env/.gitignore
+
+recursive-exclude _temp *
+recursive-exclude notebooks *
+recursive-exclude grayskull *
