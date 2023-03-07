@@ -30,14 +30,16 @@ msgf_create_env = """
 
 
 msg_warn = """
-ATTENTION:  Even if the new environmental yaml file creation is 
-    successful, that does not mean the env is satisfiable.
+    [ATTENTION]:
+    Even if the new environmental yaml file creation is successful,
+    that does not mean the env is satisfiable.
     The only way to find out at the moment* is by running the 
     `conda env create -f` command with the file path.
 
     * There is a feature request (github.com/conda issue #7495) to have
     `conda env create` do a dry-run, which is what would have been used 
     in this project.
+    ...And `conda update` does not use a yaml file, so it is not an option.
 """
 
 jp = Path.joinpath
