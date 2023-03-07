@@ -5,6 +5,7 @@ _tmp*
 _unused*
 _original
 notebooks/
+grayskull/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
