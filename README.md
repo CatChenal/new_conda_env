@@ -34,6 +34,14 @@ It's perfectly alright to display the full blown yaml file when reporting a bug,
 ![wanted](./images/wanted_venn.drawio.svg)
 
 ![C1 view](./images/c1_view.drawio.svg)
+
+# Call examples:
+### If a local copy of the repo is used:
+`python -m new_conda_env.cli -old_ver 3.10 -new_ver 3.9 -env_to_clone ds310 -new_env_name ds39`
+
+### After installation of `new_conda_env` from conda-forge [TODO]:
+`new-conda-env -old_ver 3.10 -new_ver 3.9 -env_to_clone ds310 -new_env_name ds39`
+
 # User-supplied data:
 1. `old_ver`: The old version of the kernel in (major[.minor] format)
 2. `new_ver`: The new version of the kernel to use (major[.minor] format)
@@ -47,13 +55,57 @@ It's perfectly alright to display the full blown yaml file when reporting a bug,
 # Output:
 The final file is named using this pattern: `f"lean_env{kernel[:2]}{new_ver}_from_{env_to_clone}.yml"` using the default naming for the new env, or: `f"lean_{new_env_name}_from_{env_to_clone}.yml"` using the user-provided name.
 
-# Call examples:
-### If a local copy of the repo is used:
-`python -m new_conda_env.cli -old_ver 3.10 -new_ver 3.9 -env_to_clone ds310 -new_env_name ds39`
-
-### After installation of `new_conda_env` from conda-forge [TODO]:
-`new_conda_env -old_ver 3.10 -new_ver 3.9 -env_to_clone ds310 -new_env_name ds39`
-
+# Final file example: 
+The following command `(base) >new-conda-env -old_ver 3.10 -new_ver 3.9 -env_to_clone ds310` will use
+an environment named "ds310" using python 3.10 to output a yaml file for a "lean" copy using python 3.9.
+The final file &mdash; on my system &mdash; is:
+```
+name: envpy39
+channels:
+  - conda-forge
+  - bioconda
+  - pyviz
+  - nvidia
+  - defaults
+dependencies:
+  - python=3.9
+  - pip
+  - flake8
+  - beautifulsoup4
+  - matplotlib
+  - seaborn
+  - pandas
+  - ipython
+  - python-dotenv
+  - black
+  - python-graphviz
+  - ipykernel
+  - pygraphviz
+  - scipy
+  - ipywidgets
+  - numpy
+  - pytest
+  - pylint
+  - scikit-learn
+  - dask
+  - pyspark
+  - pyarrow
+  - defusedxml
+  - setuptools
+  - wheel
+  - pip:
+      - actdiag
+      - blockdiag
+      - blockdiagmagic
+      - funcparserlib
+      - matplotlib-venn
+      - networkx
+      - nwdiag
+      - seqdiag
+      - watermark
+      - webcolors
+prefix: C:\Users\catch\miniconda3\envs\envpy39
+```
 
 # TODO
  [ x ] Create all needed processing functions
