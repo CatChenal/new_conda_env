@@ -1,4 +1,4 @@
-#pyproject.toml
+# pyproject.toml
 
 [build-system]
 requires = ["setuptools", "setuptools-scm"]
