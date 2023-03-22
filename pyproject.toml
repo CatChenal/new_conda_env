@@ -1,0 +1,31 @@
+#pyproject.toml
+
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "new_conda_env"
+description = "A Python package for generating a 'lean' environment yaml file (see README)."
+version = "0.1.0"
+license = "MIT license"
+requires-python = ">=3.6"
+keywords = ["conda", "env", "tool"]
+dependencies = ["conda"]
+
+[console_scripts]
+new-conda-env = new_conda_env.cli:main
+
+classifiers = [
+        "Development Status :: 2 - Pre-Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Natural Language :: English",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+    ]
+[tool.setuptools.dynamic]
+readme = {file = ["README.md"], content-type = "text/plain"}
