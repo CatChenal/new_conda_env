@@ -35,11 +35,8 @@ It's perfectly alright to display the full blown yaml file when reporting a bug,
 
 ![C1 view](./images/c1_view.drawio.svg)
 
-# Call examples:
-### If a local copy of the repo is used:
-`python -m new_conda_env.cli -old_ver 3.10 -new_ver 3.9 -env_to_clone ds310 -new_env_name ds39`
-
-### After installation of `new_conda_env` from conda-forge [TODO]:
+# Call example:
+### After installation of `new_conda_env` from conda-forge:
 `new-conda-env -old_ver 3.10 -new_ver 3.9 -env_to_clone ds310 -new_env_name ds39`
 
 # User-supplied data:
@@ -51,14 +48,18 @@ It's perfectly alright to display the full blown yaml file when reporting a bug,
 6. `kernel (optional)`: Default & only kernel implemented: python
 7. `display_new_yml (optional, True)`: Whether to display the new yml file
 8. `log_level (optional, 'ERROR')`: for logging control
-                                 
+
+### Note:
+`old_ver` and `new_ver` can be the same in case you want to obtain a 'lean' yaml file for 
+for an existing environment with the same version.
+
 # Output:
 The final file is named using this pattern: `f"lean_env{kernel[:2]}{new_ver}_from_{env_to_clone}.yml"` using the default naming for the new env, or: `f"lean_{new_env_name}_from_{env_to_clone}.yml"` using the user-provided name.
 
 # Final file example: 
 The following command `(base) >new-conda-env -old_ver 3.10 -new_ver 3.9 -env_to_clone ds310` will use
 an environment named "ds310" using python 3.10 to output a yaml file for a "lean" copy using python 3.9.
-The final file &mdash; on my system &mdash; is:
+The final file &mdash; on my Windows system &mdash; is:
 ```
 name: envpy39
 channels:
@@ -112,7 +113,9 @@ prefix: C:\Users\<you>\miniconda3\envs\envpy39
  [ x ] cli: Create  
  [ x ] Add check in argparse: kernel version needs a dot  
  [ x ] Add tests  
- [ ] Upload to conda-forge  
+ [ x ] Upload to conda-forge 
+ [ x ] Use pyproject.toml only
+ [ ] FUTURE: Implement "incremental" env yaml creation -> new entry point
  [ ] Do same for julia, R kernels (if requested with enhancement issues)  
  
 ---
